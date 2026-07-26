@@ -1,0 +1,46 @@
+.page { max-width: 720px; margin: 0 auto; padding: 40px 24px 80px; }
+.hero { text-align: center; padding-top: 80px; }
+.hero h1 { font-size: 32px; margin: 0 0 12px; }
+.subtitle { color: var(--text-muted); font-size: 15px; max-width: 420px; margin: 0 auto 24px; }
+
+.btn-primary {
+  display: inline-block; padding: 12px 24px; background: var(--accent); color: var(--accent-invert);
+  border-radius: 8px; font-weight: 600; font-size: 14px; text-decoration: none;
+}
+
+.view-profile-form { display: flex; gap: 8px; justify-content: center; margin-top: 32px; }
+.view-profile-form input { padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; width: 220px; }
+.view-profile-form button { padding: 10px 16px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); font-size: 14px; }
+
+.page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.page-header h1 { margin: 0; font-size: 24px; }
+.link-btn { background: none; border: none; color: var(--text-muted); font-size: 13px; text-decoration: underline; }
+.back-link { display: inline-block; margin-bottom: 16px; font-size: 13px; }
+
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 20px; }
+.card h2 { margin: 0 0 14px; font-size: 15px; }
+.card input, .card textarea { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; font-family: inherit; margin-bottom: 10px; resize: vertical; }
+.form-actions { display: flex; gap: 8px; }
+.card button[type="submit"], .btn-secondary {
+  padding: 10px 16px; border: none; border-radius: 8px; font-size: 14px; font-weight: 600;
+}
+.card button[type="submit"] { background: var(--accent); color: var(--accent-invert); }
+.btn-secondary { background: var(--surface); border: 1px solid var(--border) !important; }
+
+.error-text { color: var(--danger); font-size: 13px; }
+.empty-state { color: var(--text-muted); font-size: 14px; }
+
+.project-list { display: flex; flex-direction: column; gap: 12px; }
+.project-row { display: flex; justify-content: space-between; align-items: flex-start; padding: 12px 0; border-bottom: 1px solid var(--border); }
+.project-row h3 { margin: 0 0 4px; font-size: 15px; }
+.project-row p { margin: 0; font-size: 13px; color: var(--text-muted); }
+.tech-stack { font-size: 12px !important; color: var(--text-muted); margin-top: 4px !important; }
+.project-actions { display: flex; gap: 8px; flex-shrink: 0; }
+.project-actions button { padding: 6px 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--surface); font-size: 12px; }
+.btn-danger { color: var(--danger) !important; }
+
+.profile-header { display: flex; gap: 16px; align-items: center; margin-bottom: 24px; }
+.avatar { width: 64px; height: 64px; border-radius: 50%; }
+.profile-header h1 { margin: 0; font-size: 22px; }
+.project-card { margin-bottom: 12px; }
+.project-links { display: flex; gap: 12px; margin-top: 10px; font-size: 13px; font-weight: 600; }
