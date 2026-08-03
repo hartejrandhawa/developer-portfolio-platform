@@ -7,6 +7,7 @@ public class User
     public int Id { get; set; }
 
     [Required]
+    [MaxLength(50)]
     public string GitHubId { get; set; } = string.Empty;
 
     [Required]

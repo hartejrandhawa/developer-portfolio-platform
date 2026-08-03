@@ -70,6 +70,18 @@ builder.Services.AddAuthentication(options =>
         options.ClaimActions.MapJsonKey("urn:github:login", "login");
         options.ClaimActions.MapJsonKey("urn:github:avatarurl", "avatar_url");
         options.ClaimActions.MapJsonKey(System.Security.Claims.ClaimTypes.Name, "name");
+
+        // The correlation cookie defaults to SameSite=None + Secure, which
+        // requires HTTPS — SameSite=None without Secure is an invalid
+        // combination that browsers silently refuse to store at all.
+        // Locally the API runs over plain HTTP, so drop to Lax (still sent
+        // on the top-level redirect back from GitHub) and allow non-Secure.
+        // Only in Development; production is expected to run behind HTTPS.
+        if (builder.Environment.IsDevelopment())
+        {
+            options.CorrelationCookie.SameSite = SameSiteMode.Lax;
+            options.CorrelationCookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+        }
     });
 
 builder.Services.AddAuthorization();
