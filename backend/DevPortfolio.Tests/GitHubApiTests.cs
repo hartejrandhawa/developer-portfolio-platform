@@ -109,6 +109,26 @@ public class GitHubApiTests : IDisposable
     }
 
     [Fact]
+    public async Task A_failed_sync_does_not_lock_the_user_out_of_retrying()
+    {
+        var user = await _app.CreateUserAsync("alice");
+        var client = _app.ClientFor(user);
+        _app.GitHub.Respond("/users/alice/events/public", """{"message":"API rate limit exceeded"}""", HttpStatusCode.Forbidden);
+
+        var failed = await client.PostAsync("/api/github/activity/sync", null);
+        Assert.Equal(HttpStatusCode.BadGateway, failed.StatusCode);
+        Assert.Null(_app.WithDb(db => db.Users.Single(u => u.Id == user.Id).ActivitySyncedAt)); // claim released
+
+        // GitHub recovers; an immediate retry must actually run, not be throttled.
+        _app.GitHub.Respond("/users/alice/events/public", """
+        [ { "type": "PushEvent", "repo": { "name": "alice/x" }, "payload": { "size": 2 }, "created_at": "2026-11-26T09:00:00Z" } ]
+        """);
+        var retried = await (await client.PostAsync("/api/github/activity/sync", null)).Content.ReadFromJsonAsync<ActivitySummary>();
+        Assert.Equal(2, retried!.Total);
+        Assert.Equal(TestApp.Now.UtcDateTime, retried.SyncedAt);
+    }
+
+    [Fact]
     public async Task GitHub_rate_limit_is_reported_as_502_with_a_message()
     {
         var client = _app.ClientFor(await _app.CreateUserAsync("alice"));
