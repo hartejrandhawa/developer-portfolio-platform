@@ -46,16 +46,16 @@ public record ProjectResponse(
 public record CreateProjectRequest(
     [Required, MaxLength(100)] string Title,
     [MaxLength(1000)] string? Description,
-    [HttpUrl, MaxLength(2048)] string? RepoUrl,
-    [HttpUrl, MaxLength(2048)] string? LiveUrl,
+    [HttpUrl, MaxLength(2048), Display(Name = "Code link")] string? RepoUrl,
+    [HttpUrl, MaxLength(2048), Display(Name = "Live site link")] string? LiveUrl,
     [MaxLength(300)] string? TechStack
 );
 
 public record UpdateProjectRequest(
     [Required, MaxLength(100)] string Title,
     [MaxLength(1000)] string? Description,
-    [HttpUrl, MaxLength(2048)] string? RepoUrl,
-    [HttpUrl, MaxLength(2048)] string? LiveUrl,
+    [HttpUrl, MaxLength(2048), Display(Name = "Code link")] string? RepoUrl,
+    [HttpUrl, MaxLength(2048), Display(Name = "Live site link")] string? LiveUrl,
     [MaxLength(300)] string? TechStack,
     int? DisplayOrder = null // optional: ordering is normally changed via /reorder
 );

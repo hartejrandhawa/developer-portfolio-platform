@@ -20,6 +20,7 @@ function messageFrom(data, status) {
   const firstFieldError = data?.errors && Object.values(data.errors).flat()[0];
   if (firstFieldError) return firstFieldError;
   if (status === 401) return "Your session has ended. Log in again to continue.";
+  if (status >= 500) return "The server ran into a problem. Try again in a moment.";
   return data?.title || `Request failed (${status})`;
 }
 

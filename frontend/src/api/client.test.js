@@ -35,8 +35,13 @@ describe("api client", () => {
   });
 
   it("surfaces the first ASP.NET validation message", async () => {
-    respond(400, { title: "One or more validation errors occurred.", errors: { RepoUrl: ["RepoUrl must be a full http:// or https:// URL."] } });
-    await expect(api.createProject({ title: "x" })).rejects.toThrow("RepoUrl must be a full http:// or https:// URL.");
+    respond(400, { title: "One or more validation errors occurred.", errors: { RepoUrl: ["Code link must be a full http:// or https:// URL."] } });
+    await expect(api.createProject({ title: "x" })).rejects.toThrow("Code link must be a full http:// or https:// URL.");
+  });
+
+  it("explains server errors without exposing a bare status code", async () => {
+    respond(500, undefined);
+    await expect(api.getPublicProfile("a")).rejects.toThrow("The server ran into a problem");
   });
 
   it("returns null for 204 responses", async () => {
