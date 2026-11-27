@@ -52,8 +52,8 @@ public class ProfileController : ControllerBase
         var user = await _db.Users.FindAsync(userId);
         if (user is null) return NotFound();
 
-        user.DisplayName = request.DisplayName;
-        user.Bio = request.Bio;
+        user.DisplayName = request.DisplayName.NullIfBlank();
+        user.Bio = request.Bio.NullIfBlank();
         await _db.SaveChangesAsync();
 
         return Ok(new { message = "Profile updated" });

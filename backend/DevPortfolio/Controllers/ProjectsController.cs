@@ -58,11 +58,11 @@ public class ProjectsController : ControllerBase
         var project = new Project
         {
             UserId = userId,
-            Title = request.Title,
-            Description = request.Description,
-            RepoUrl = request.RepoUrl,
-            LiveUrl = request.LiveUrl,
-            TechStack = request.TechStack,
+            Title = request.Title.Trim(),
+            Description = request.Description.NullIfBlank(),
+            RepoUrl = request.RepoUrl.NullIfBlank(),
+            LiveUrl = request.LiveUrl.NullIfBlank(),
+            TechStack = request.TechStack.NullIfBlank(),
             DisplayOrder = maxOrder + 1,
         };
 
@@ -79,11 +79,11 @@ public class ProjectsController : ControllerBase
         var project = await _db.Projects.FirstOrDefaultAsync(p => p.Id == id && p.UserId == userId);
         if (project is null) return NotFound(new { error = "Project not found" });
 
-        project.Title = request.Title;
-        project.Description = request.Description;
-        project.RepoUrl = request.RepoUrl;
-        project.LiveUrl = request.LiveUrl;
-        project.TechStack = request.TechStack;
+        project.Title = request.Title.Trim();
+        project.Description = request.Description.NullIfBlank();
+        project.RepoUrl = request.RepoUrl.NullIfBlank();
+        project.LiveUrl = request.LiveUrl.NullIfBlank();
+        project.TechStack = request.TechStack.NullIfBlank();
         project.DisplayOrder = request.DisplayOrder;
         project.UpdatedAt = DateTime.UtcNow;
 
