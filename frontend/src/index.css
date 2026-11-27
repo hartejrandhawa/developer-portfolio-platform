@@ -1,19 +1,149 @@
+/* Design tokens. Ink navy carries text and primary actions; cobalt is reserved
+   almost entirely for the activity grid so it stays the memorable element. */
 :root {
-  --bg: #fafafa;
+  --paper: #f4f6fa;
   --surface: #ffffff;
-  --border: #e5e5e5;
-  --text: #18181b;
-  --text-muted: #71717a;
-  --accent: #18181b;
-  --accent-invert: #ffffff;
-  --danger: #b91c1c;
-  --sans: -apple-system, "Inter", "Segoe UI", Roboto, sans-serif;
-  color: var(--text);
-  background: var(--bg);
-  font-family: var(--sans);
+  --ink: #131b33;
+  --ink-2: #47506b;
+  --ink-3: #6f7891;
+  --line: #dce1eb;
+  --line-strong: #c3cad8;
+  --cobalt: #2f45e0;
+  --on-ink: #ffffff;
+  --danger: #b4233a;
+  --danger-bg: #fbeaed;
+  --focus: #2f45e0;
+
+  --heat-0: #e3e7f0;
+  --heat-1: #c6cefa;
+  --heat-2: #8d9df4;
+  --heat-3: #4f66ea;
+  --heat-4: #1f2fb4;
+
+  /* Radii follow hierarchy: controls < panels; the grid cells get their own. */
+  --r-control: 8px;
+  --r-panel: 14px;
+
+  /* Type scale (~1.25), with a fluid display size. */
+  --t-small: 0.8125rem;
+  --t-body: 1rem;
+  --t-lead: 1.1875rem;
+  --t-h3: 1.125rem;
+  --t-h2: 1.5rem;
+  --t-display: clamp(2.5rem, 1.6rem + 4vw, 4.75rem);
+  --t-display-small: clamp(2rem, 1.5rem + 2vw, 3rem);
+
+  --font:
+    "Bricolage Grotesque", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    sans-serif;
+
+  color-scheme: light dark;
+  color: var(--ink);
+  background: var(--paper);
+  font-family: var(--font);
+  font-size: 100%;
+  line-height: 1.55;
+  font-optical-sizing: auto;
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
-* { box-sizing: border-box; }
-body { margin: 0; }
-button { font-family: inherit; cursor: pointer; }
-a { color: inherit; }
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #0d1222;
+    --surface: #141b30;
+    --ink: #e8ecf6;
+    --ink-2: #b0b8cd;
+    --ink-3: #8790a8;
+    --line: #253050;
+    --line-strong: #34406a;
+    --cobalt: #93a3ff;
+    --on-ink: #0d1222;
+    --danger: #ff8597;
+    --danger-bg: #3a1622;
+    --focus: #93a3ff;
+
+    --heat-0: #1b2442;
+    --heat-1: #263a86;
+    --heat-2: #3654cc;
+    --heat-3: #6680ff;
+    --heat-4: #b3c0ff;
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+}
+
+h1,
+h2,
+h3,
+p,
+ol,
+ul,
+figure {
+  margin: 0;
+}
+
+ol,
+ul {
+  padding: 0;
+  list-style: none;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+a {
+  color: inherit;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+}
+
+a:hover {
+  text-decoration-thickness: 2px;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

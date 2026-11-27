@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { setToken } from "../lib/auth";
 
 export default function AuthCallback() {
   const navigate = useNavigate();
@@ -10,16 +11,12 @@ export default function AuthCallback() {
     const params = new URLSearchParams(window.location.hash.slice(1));
     const token = params.get("token");
     if (token) {
-      localStorage.setItem("token", token);
+      setToken(token);
       navigate("/dashboard", { replace: true });
     } else {
       navigate("/?error=login_failed", { replace: true });
     }
   }, [navigate]);
 
-  return (
-    <div className="page">
-      <p>Logging you in...</p>
-    </div>
-  );
+  return <p className="muted page-pad" aria-live="polite">Signing you in…</p>;
 }
