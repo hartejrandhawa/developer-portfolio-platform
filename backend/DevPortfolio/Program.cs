@@ -126,3 +126,7 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+// Lets the integration test project reference this top-level-statements entry
+// point via WebApplicationFactory<Program>.
+public partial class Program { }
