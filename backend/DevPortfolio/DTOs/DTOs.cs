@@ -1,4 +1,6 @@
 using System.ComponentModel.DataAnnotations;
+using System.Linq.Expressions;
+using DevPortfolio.Models;
 
 namespace DevPortfolio.DTOs;
 
@@ -18,6 +20,8 @@ public record UpdateProfileRequest(
     [MaxLength(500)] string? Bio
 );
 
+public record MeResponse(string Username, string? DisplayName, string? Bio, string? AvatarUrl);
+
 public record ProjectResponse(
     int Id,
     string Title,
@@ -26,7 +30,17 @@ public record ProjectResponse(
     string? LiveUrl,
     string? TechStack,
     int DisplayOrder
-);
+)
+{
+    // One mapping, two forms: an Expression so EF can translate it into SQL
+    // (selects only these columns), and a compiled delegate for in-memory entities.
+    public static readonly Expression<Func<Project, ProjectResponse>> Projection =
+        p => new ProjectResponse(p.Id, p.Title, p.Description, p.RepoUrl, p.LiveUrl, p.TechStack, p.DisplayOrder);
+
+    private static readonly Func<Project, ProjectResponse> Compiled = Projection.Compile();
+
+    public static ProjectResponse From(Project p) => Compiled(p);
+}
 
 public record CreateProjectRequest(
     [Required, MaxLength(100)] string Title,
@@ -42,5 +56,7 @@ public record UpdateProjectRequest(
     [HttpUrl, MaxLength(2048)] string? RepoUrl,
     [HttpUrl, MaxLength(2048)] string? LiveUrl,
     [MaxLength(300)] string? TechStack,
-    int DisplayOrder
+    int? DisplayOrder = null // optional: ordering is normally changed via /reorder
 );
+
+public record ReorderRequest([Required] List<int> ProjectIds);
