@@ -24,6 +24,9 @@ public class User
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
+    // When GitHub activity was last pulled into Contributions; null = never.
+    public DateTime? ActivitySyncedAt { get; set; }
+
     public ICollection<Project> Projects { get; set; } = new List<Project>();
     public ICollection<Contribution> Contributions { get; set; } = new List<Contribution>();
 }

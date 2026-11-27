@@ -39,6 +39,10 @@ public class AppDbContext : DbContext
                   .OnDelete(DeleteBehavior.Cascade);
 
             entity.HasIndex(c => new { c.UserId, c.ContributionDate });
+
+            // One row per (user, repo, type, day): sync replaces rows rather than
+            // double-counting, and this enforces that at the DB level.
+            entity.HasIndex(c => new { c.UserId, c.RepoName, c.ContributionType, c.ContributionDate }).IsUnique();
         });
     }
 }

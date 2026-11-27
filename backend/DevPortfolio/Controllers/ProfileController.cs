@@ -12,10 +12,12 @@ namespace DevPortfolio.Controllers;
 public class ProfileController : ControllerBase
 {
     private readonly AppDbContext _db;
+    private readonly ActivityService _activity;
 
-    public ProfileController(AppDbContext db)
+    public ProfileController(AppDbContext db, ActivityService activity)
     {
         _db = db;
+        _activity = activity;
     }
 
     // Public, shareable profile page — no auth required
@@ -37,7 +39,8 @@ public class ProfileController : ControllerBase
             user.DisplayName,
             user.Bio,
             user.AvatarUrl,
-            user.Projects.Select(ProjectResponse.From).ToList()
+            user.Projects.Select(ProjectResponse.From).ToList(),
+            await _activity.GetSummaryAsync(user.Id, user.ActivitySyncedAt)
         );
     }
 
@@ -49,7 +52,7 @@ public class ProfileController : ControllerBase
         var userId = User.GetUserId();
         var me = await _db.Users
             .Where(u => u.Id == userId)
-            .Select(u => new MeResponse(u.Username, u.DisplayName, u.Bio, u.AvatarUrl))
+            .Select(u => new MeResponse(u.Username, u.DisplayName, u.Bio, u.AvatarUrl, u.ActivitySyncedAt))
             .FirstOrDefaultAsync();
 
         // Valid token but the row is gone (e.g. DB reset): treat as signed out.
@@ -69,6 +72,6 @@ public class ProfileController : ControllerBase
         user.Bio = request.Bio.NullIfBlank();
         await _db.SaveChangesAsync();
 
-        return new MeResponse(user.Username, user.DisplayName, user.Bio, user.AvatarUrl);
+        return new MeResponse(user.Username, user.DisplayName, user.Bio, user.AvatarUrl, user.ActivitySyncedAt);
     }
 }

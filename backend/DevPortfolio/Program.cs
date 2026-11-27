@@ -15,6 +15,10 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 // --- Services ---
 builder.Services.AddScoped<JwtService>();
+builder.Services.AddScoped<ActivityService>();
+builder.Services.AddSingleton(TimeProvider.System); // injectable clock, so tests can pin "today"
+builder.Services.AddHttpClient<GitHubService>((sp, client) =>
+    GitHubService.Configure(client, sp.GetRequiredService<IConfiguration>()));
 
 // --- CORS ---
 var frontendOrigin = builder.Configuration["Frontend:Origin"] ?? "http://localhost:5173";
@@ -103,7 +107,7 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization();
 
-builder.Services.AddControllers();
+builder.Services.AddControllers(options => options.Filters.Add<GitHubApiExceptionFilter>());
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 

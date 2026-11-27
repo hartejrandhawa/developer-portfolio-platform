@@ -12,7 +12,8 @@ public record ProfileResponse(
     string? DisplayName,
     string? Bio,
     string? AvatarUrl,
-    List<ProjectResponse> Projects
+    List<ProjectResponse> Projects,
+    ActivitySummary Activity
 );
 
 public record UpdateProfileRequest(
@@ -20,7 +21,7 @@ public record UpdateProfileRequest(
     [MaxLength(500)] string? Bio
 );
 
-public record MeResponse(string Username, string? DisplayName, string? Bio, string? AvatarUrl);
+public record MeResponse(string Username, string? DisplayName, string? Bio, string? AvatarUrl, DateTime? ActivitySyncedAt);
 
 public record ProjectResponse(
     int Id,
@@ -60,3 +61,34 @@ public record UpdateProjectRequest(
 );
 
 public record ReorderRequest([Required] List<int> ProjectIds);
+
+public record ImportReposRequest([Required, MinLength(1), MaxLength(100)] List<string> RepoNames);
+
+public record GitHubRepoResponse(
+    string Name,
+    string? Description,
+    string HtmlUrl,
+    string? Homepage,
+    string? Language,
+    List<string> Topics,
+    int Stars,
+    bool Archived,
+    DateTime? PushedAt,
+    bool AlreadyImported
+);
+
+public record ActivityDay(DateOnly Date, int Count);
+
+public record RepoActivity(string Repo, int Count);
+
+public record ActivitySummary(
+    DateOnly From,
+    DateOnly To,
+    int Total,
+    int Commits,
+    int PullRequests,
+    int Issues,
+    List<ActivityDay> Days,      // only days with activity; the client fills gaps
+    List<RepoActivity> TopRepos,
+    DateTime? SyncedAt
+);

@@ -9,6 +9,7 @@ CREATE TABLE Users (
     Bio NVARCHAR(500) NULL,
     AvatarUrl NVARCHAR(MAX) NULL,
     CreatedAt DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(),
+    ActivitySyncedAt DATETIME2 NULL,
     CONSTRAINT UQ_Users_GitHubId UNIQUE (GitHubId),
     CONSTRAINT UQ_Users_Username UNIQUE (Username)
 );
@@ -42,3 +43,8 @@ CREATE TABLE Contributions (
 );
 
 CREATE INDEX IX_Contributions_UserId_Date ON Contributions (UserId, ContributionDate);
+
+-- One row per (user, repo, type, day): activity sync replaces rows instead of
+-- double-counting, and this enforces it at the database level.
+CREATE UNIQUE INDEX IX_Contributions_UserId_RepoName_ContributionType_ContributionDate
+    ON Contributions (UserId, RepoName, ContributionType, ContributionDate);
