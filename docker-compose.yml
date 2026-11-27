@@ -1,0 +1,20 @@
+# Local SQL Server for development: `docker compose up -d`
+#
+# azure-sql-edge runs natively on Apple Silicon. On x86-64 you can use the full
+# engine instead: SQL_IMAGE=mcr.microsoft.com/mssql/server:2022-latest docker compose up -d
+#
+# The password matches the placeholder connection string in appsettings.json.
+# It's for a throwaway local container only; never reuse it anywhere real.
+services:
+  sql:
+    image: ${SQL_IMAGE:-mcr.microsoft.com/azure-sql-edge:latest}
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "YourPassword123!"
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqldata:/var/opt/mssql
+
+volumes:
+  sqldata:

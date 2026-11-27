@@ -53,6 +53,9 @@ namespace DevPortfolio.Migrations
 
                     b.HasIndex("UserId", "ContributionDate");
 
+                    b.HasIndex("UserId", "RepoName", "ContributionType", "ContributionDate")
+                        .IsUnique();
+
                     b.ToTable("Contributions");
                 });
 
@@ -109,6 +112,9 @@ namespace DevPortfolio.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime?>("ActivitySyncedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("AvatarUrl")
                         .HasColumnType("nvarchar(max)");

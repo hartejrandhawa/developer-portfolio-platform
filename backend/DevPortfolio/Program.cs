@@ -15,6 +15,10 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 // --- Services ---
 builder.Services.AddScoped<JwtService>();
+builder.Services.AddScoped<ActivityService>();
+builder.Services.AddSingleton(TimeProvider.System); // injectable clock, so tests can pin "today"
+builder.Services.AddHttpClient<GitHubService>((sp, client) =>
+    GitHubService.Configure(client, sp.GetRequiredService<IConfiguration>()));
 
 // --- CORS ---
 var frontendOrigin = builder.Configuration["Frontend:Origin"] ?? "http://localhost:5173";
@@ -71,6 +75,23 @@ builder.Services.AddAuthentication(options =>
         options.ClaimActions.MapJsonKey("urn:github:avatarurl", "avatar_url");
         options.ClaimActions.MapJsonKey(System.Security.Claims.ClaimTypes.Name, "name");
 
+        // Without these, a user clicking "Cancel" on GitHub's consent screen (or any
+        // OAuth failure) surfaces as an unhandled exception page. Send them back to
+        // the frontend with a readable error code instead.
+        var frontendHome = builder.Configuration["Frontend:Origin"] ?? "http://localhost:5173";
+        options.Events.OnAccessDenied = context =>
+        {
+            context.Response.Redirect($"{frontendHome}/?error=access_denied");
+            context.HandleResponse();
+            return Task.CompletedTask;
+        };
+        options.Events.OnRemoteFailure = context =>
+        {
+            context.Response.Redirect($"{frontendHome}/?error=login_failed");
+            context.HandleResponse();
+            return Task.CompletedTask;
+        };
+
         // The correlation cookie defaults to SameSite=None + Secure, which
         // requires HTTPS — SameSite=None without Secure is an invalid
         // combination that browsers silently refuse to store at all.
@@ -86,7 +107,7 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization();
 
-builder.Services.AddControllers();
+builder.Services.AddControllers(options => options.Filters.Add<GitHubApiExceptionFilter>());
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -96,12 +117,33 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+
+    // Apply pending migrations on startup so a fresh clone + `docker compose up`
+    // just works. Dev only: production schema changes should be a deliberate step.
+    using var scope = app.Services.CreateScope();
+    scope.ServiceProvider.GetRequiredService<AppDbContext>().Database.Migrate();
 }
 
 app.UseHttpsRedirection();
+
+// In production the built React app is copied into wwwroot (see deploy.yml), so
+// one process serves both the API and the frontend from the same origin.
+app.UseDefaultFiles();
+app.UseStaticFiles();
+
 app.UseCors("FrontendPolicy");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
+// Client-side routes like /u/alice or /dashboard resolve to the SPA, but unknown
+// /api paths stay real 404s instead of quietly returning HTML. `nonfile` keeps
+// paths with extensions (JS/CSS/images) out of the fallback: routing runs before
+// UseStaticFiles, and static files are skipped once an endpoint has matched.
+app.MapFallbackToFile("{*path:nonfile:regex(^(?!api/).*$)}", "index.html");
+
 app.Run();
+
+// Lets the integration test project reference this top-level-statements entry
+// point via WebApplicationFactory<Program>.
+public partial class Program { }

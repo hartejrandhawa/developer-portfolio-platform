@@ -1,23 +1,30 @@
 import { useEffect } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { getToken, setToken } from "../lib/auth";
 
 export default function AuthCallback() {
-  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
   useEffect(() => {
-    const token = searchParams.get("token");
-    if (token) {
-      localStorage.setItem("token", token);
-      navigate("/dashboard", { replace: true });
-    } else {
-      navigate("/?error=login_failed", { replace: true });
-    }
-  }, [searchParams, navigate]);
+    // The backend puts the token in the URL fragment (#token=...) so it never
+    // reaches a server log.
+    const token = new URLSearchParams(window.location.hash.slice(1)).get(
+      "token",
+    );
+    if (token) setToken(token);
+
+    // Decide by whether we now hold a token, not by whether the fragment still
+    // has one: navigating away rewrites the URL immediately, so a second run of
+    // this effect (React StrictMode does this in dev) would otherwise see an
+    // empty fragment and wrongly report a failed login.
+    navigate(getToken() ? "/dashboard" : "/?error=login_failed", {
+      replace: true,
+    });
+  }, [navigate]);
 
   return (
-    <div className="page">
-      <p>Logging you in...</p>
-    </div>
+    <p className="muted page-pad" aria-live="polite">
+      Signing you in…
+    </p>
   );
 }

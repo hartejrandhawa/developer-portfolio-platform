@@ -1,14 +1,27 @@
+using System.ComponentModel.DataAnnotations;
+using System.Linq.Expressions;
+using DevPortfolio.Models;
+
 namespace DevPortfolio.DTOs;
+
+// Max lengths mirror the column sizes in Models/ so oversized input is a clean 400
+// instead of a SQL truncation error (500).
 
 public record ProfileResponse(
     string Username,
     string? DisplayName,
     string? Bio,
     string? AvatarUrl,
-    List<ProjectResponse> Projects
+    List<ProjectResponse> Projects,
+    ActivitySummary Activity
 );
 
-public record UpdateProfileRequest(string? DisplayName, string? Bio);
+public record UpdateProfileRequest(
+    [MaxLength(100)] string? DisplayName,
+    [MaxLength(500)] string? Bio
+);
+
+public record MeResponse(string Username, string? DisplayName, string? Bio, string? AvatarUrl, DateTime? ActivitySyncedAt);
 
 public record ProjectResponse(
     int Id,
@@ -18,21 +31,64 @@ public record ProjectResponse(
     string? LiveUrl,
     string? TechStack,
     int DisplayOrder
-);
+)
+{
+    // One mapping, two forms: an Expression so EF can translate it into SQL
+    // (selects only these columns), and a compiled delegate for in-memory entities.
+    public static readonly Expression<Func<Project, ProjectResponse>> Projection =
+        p => new ProjectResponse(p.Id, p.Title, p.Description, p.RepoUrl, p.LiveUrl, p.TechStack, p.DisplayOrder);
+
+    private static readonly Func<Project, ProjectResponse> Compiled = Projection.Compile();
+
+    public static ProjectResponse From(Project p) => Compiled(p);
+}
 
 public record CreateProjectRequest(
-    string Title,
-    string? Description,
-    string? RepoUrl,
-    string? LiveUrl,
-    string? TechStack
+    [Required, MaxLength(100)] string Title,
+    [MaxLength(1000)] string? Description,
+    [HttpUrl, MaxLength(2048), Display(Name = "Code link")] string? RepoUrl,
+    [HttpUrl, MaxLength(2048), Display(Name = "Live site link")] string? LiveUrl,
+    [MaxLength(300)] string? TechStack
 );
 
 public record UpdateProjectRequest(
-    string Title,
+    [Required, MaxLength(100)] string Title,
+    [MaxLength(1000)] string? Description,
+    [HttpUrl, MaxLength(2048), Display(Name = "Code link")] string? RepoUrl,
+    [HttpUrl, MaxLength(2048), Display(Name = "Live site link")] string? LiveUrl,
+    [MaxLength(300)] string? TechStack,
+    int? DisplayOrder = null // optional: ordering is normally changed via /reorder
+);
+
+public record ReorderRequest([Required] List<int> ProjectIds);
+
+public record ImportReposRequest([Required, MinLength(1), MaxLength(100)] List<string> RepoNames);
+
+public record GitHubRepoResponse(
+    string Name,
     string? Description,
-    string? RepoUrl,
-    string? LiveUrl,
-    string? TechStack,
-    int DisplayOrder
+    string HtmlUrl,
+    string? Homepage,
+    string? Language,
+    List<string> Topics,
+    int Stars,
+    bool Archived,
+    DateTime? PushedAt,
+    bool AlreadyImported
+);
+
+public record ActivityDay(DateOnly Date, int Count);
+
+public record RepoActivity(string Repo, int Count);
+
+public record ActivitySummary(
+    DateOnly From,
+    DateOnly To,
+    int Total,
+    int Commits,
+    int PullRequests,
+    int Issues,
+    List<ActivityDay> Days,      // only days with activity; the client fills gaps
+    List<RepoActivity> TopRepos,
+    DateTime? SyncedAt
 );
