@@ -71,6 +71,23 @@ builder.Services.AddAuthentication(options =>
         options.ClaimActions.MapJsonKey("urn:github:avatarurl", "avatar_url");
         options.ClaimActions.MapJsonKey(System.Security.Claims.ClaimTypes.Name, "name");
 
+        // Without these, a user clicking "Cancel" on GitHub's consent screen (or any
+        // OAuth failure) surfaces as an unhandled exception page. Send them back to
+        // the frontend with a readable error code instead.
+        var frontendHome = builder.Configuration["Frontend:Origin"] ?? "http://localhost:5173";
+        options.Events.OnAccessDenied = context =>
+        {
+            context.Response.Redirect($"{frontendHome}/?error=access_denied");
+            context.HandleResponse();
+            return Task.CompletedTask;
+        };
+        options.Events.OnRemoteFailure = context =>
+        {
+            context.Response.Redirect($"{frontendHome}/?error=login_failed");
+            context.HandleResponse();
+            return Task.CompletedTask;
+        };
+
         // The correlation cookie defaults to SameSite=None + Secure, which
         // requires HTTPS — SameSite=None without Secure is an invalid
         // combination that browsers silently refuse to store at all.
