@@ -5,51 +5,54 @@ on:
     branches: [main]
 
 jobs:
-  build-backend:
+  ci:
+    uses: ./.github/workflows/ci.yml
+
+  build:
+    needs: ci
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
-      - name: Restore
-        run: dotnet restore backend/DevPortfolio/DevPortfolio.csproj
-      - name: Build
-        run: dotnet build backend/DevPortfolio/DevPortfolio.csproj --no-restore --configuration Release
-      - name: Publish
-        run: dotnet publish backend/DevPortfolio/DevPortfolio.csproj --no-build --configuration Release -o publish
-      - uses: actions/upload-artifact@v4
-        with:
-          name: backend-publish
-          path: publish
-
-  build-frontend:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
-      - name: Install and build
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Build frontend
         working-directory: frontend
         run: |
           npm ci
           npm run build
+
+      - name: Publish backend
+        run: dotnet publish backend/DevPortfolio/DevPortfolio.csproj --configuration Release -o publish
+
+      # The API serves the SPA from wwwroot (UseStaticFiles + fallback to
+      # index.html), so one process and one origin serve both: no CORS in prod.
+      - name: Bundle frontend into the backend
+        run: |
+          mkdir -p publish/wwwroot
+          cp -r frontend/dist/. publish/wwwroot/
+
       - uses: actions/upload-artifact@v4
         with:
-          name: frontend-dist
-          path: frontend/dist
+          name: release
+          path: publish
 
   deploy:
-    needs: [build-backend, build-frontend]
+    needs: build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v4
         with:
-          name: backend-publish
+          name: release
           path: publish
 
-      - name: Deploy to EC2
+      - name: Copy release to EC2
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.EC2_HOST }}

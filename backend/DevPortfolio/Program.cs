@@ -117,13 +117,30 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+
+    // Apply pending migrations on startup so a fresh clone + `docker compose up`
+    // just works. Dev only: production schema changes should be a deliberate step.
+    using var scope = app.Services.CreateScope();
+    scope.ServiceProvider.GetRequiredService<AppDbContext>().Database.Migrate();
 }
 
 app.UseHttpsRedirection();
+
+// In production the built React app is copied into wwwroot (see deploy.yml), so
+// one process serves both the API and the frontend from the same origin.
+app.UseDefaultFiles();
+app.UseStaticFiles();
+
 app.UseCors("FrontendPolicy");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+
+// Client-side routes like /u/alice or /dashboard resolve to the SPA, but unknown
+// /api paths stay real 404s instead of quietly returning HTML. `nonfile` keeps
+// paths with extensions (JS/CSS/images) out of the fallback: routing runs before
+// UseStaticFiles, and static files are skipped once an endpoint has matched.
+app.MapFallbackToFile("{*path:nonfile:regex(^(?!api/).*$)}", "index.html");
 
 app.Run();
 
